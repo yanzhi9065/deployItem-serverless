@@ -61,8 +61,7 @@ def deploy_item():
     byte_file = compress_json_to_bytes(instance)
 
     write_outfit(uuid, version, byte_file, master_idx)
-    return instance
-    #return jsonify({"message": "ok"})
+    return jsonify({"message": "ok"})
 
 if __name__ == '__main__':
     app.run()
