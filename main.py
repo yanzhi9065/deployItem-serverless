@@ -3,8 +3,7 @@ import json
 
 from flask import Flask, jsonify, request
 
-from json_tools import decode_dict, encode_dict
-#from mongo_utils import write_outfit
+from mongo_utils import write_outfit
 
 app = Flask(__name__)
 
@@ -26,7 +25,7 @@ def normalize_item(byts):
     if it's a dict, return ecnoded [dict]
     else return the input
     """
-    instance = decode_dict(json.loads(byts.decode("utf-8")))
+    instance = json.loads(byts.decode("utf-8"))
     if isinstance(instance, dict):
         return [instance]
     return instance
@@ -35,11 +34,11 @@ def compress_json_to_bytes(input):
     """
     zip json, to unzip file, use get_XXX_from_file
     """
-    return json.dumps(encode_dict(input, backend="jpeg|zstd")).encode('utf-8')
+    return json.dumps(input).encode('utf-8')
 
 @app.route('/')
 def hello_world():
-    return jsonify({"message": "Hello World!"})
+    return jsonify({"message": "This is item deploy service"})
 
 @app.route('/deploy', methods=['POST'])
 def deploy_item():
@@ -61,8 +60,9 @@ def deploy_item():
     instance = normalize_item(byte_file)
     byte_file = compress_json_to_bytes(instance)
 
-    # write_outfit(uuid, version, byte_file, master_idx)
-    return jsonify({"message": "ok"})
+    write_outfit(uuid, version, byte_file, master_idx)
+    return instance
+    #return jsonify({"message": "ok"})
 
 if __name__ == '__main__':
     app.run()

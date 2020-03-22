@@ -1,8 +1,4 @@
 flask
 zappa
 
-zstd
-lz4
-opencv-python
-
-#pymongo
+pymongo
