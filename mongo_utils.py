@@ -122,9 +122,31 @@ class MongoDBUtils:
                 file_table.delete(deprecate_file_id)
 
     def read_file(self, item_type, item_uuid, item_version):
+        print("type:", item_type, "uuid:", item_uuid, "version:", item_version)
+        print("version type:", type(item_version))
         header_table, file_table = self._get_tables(item_type)
 
         record = header_table.find_one({'uuid': item_uuid, 'version': item_version})
+        print("try to find record")
+        if record is not None:
+            print("found record")
+            record['file'] = file_table.get(record['fileID']).read()
+
+        return record
+
+    def read_file_without_version(self, item_type, uuid):
+        header_table, file_table = self._get_tables(item_type)
+
+        records = header_table.find({'uuid': uuid})
+
+        max_version = -1
+        record = None
+        for rec in records:
+            if rec['version'] > max_version:
+                record = rec
+                max_version = rec['version']
+
+        print(max_version)
         if record is not None:
             record['file'] = file_table.get(record['fileID']).read()
 
@@ -151,7 +173,10 @@ def write_outfit(uuid, version, file, master_idx=0):
 
 
 def read_outfit(uuid, version):
-    return mongoDB.read_file("outfit", uuid, version)
+    if isinstance(version, int) and version >= 0:
+        return mongoDB.read_file("outfit", uuid, version)
+    else:
+        return mongoDB.read_file_without_version("outfit", uuid)
 
 
 def write_avatar(uuid, version, file):
@@ -160,7 +185,10 @@ def write_avatar(uuid, version, file):
 
 
 def read_avatar(uuid, version):
-    return mongoDB.read_file("avatar", uuid, version)
+    if isinstance(version, int) and version >= 0:
+        return mongoDB.read_file("avatar", uuid, version)
+    else:
+        return mongoDB.read_file_without_version("avatar", uuid)
 
 
 def get_master_idx(item_record):
