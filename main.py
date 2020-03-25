@@ -3,7 +3,7 @@ import json
 
 from flask import Flask, jsonify, request
 
-from mongo_utils import write_outfit
+from mongo_utils import write_outfit, read_avatar
 
 app = Flask(__name__)
 
@@ -63,6 +63,22 @@ def deploy_item():
     write_outfit(uuid, version, byte_file, master_idx)
     return jsonify({"message": "ok"})
 
+@app.route("/get_avatar", methods=['GET'])
+def get_avatar():
+    uuid = request.args.get('uuid', None)
+    version = request.args.get('version', None)
+    if version is not None:
+        version = int(version)
+
+    if uuid is None:
+        return response_with_error("Input is not valid")
+
+    record = read_avatar(uuid, version)
+    if record:
+        return json.loads(record['file'].decode("utf-8"))
+    else:
+        return response_with_error("avatar is not in mongoDB")
+
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
 
