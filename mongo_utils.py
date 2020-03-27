@@ -146,11 +146,19 @@ class MongoDBUtils:
                 record = rec
                 max_version = rec['version']
 
-        print(max_version)
         if record is not None:
             record['file'] = file_table.get(record['fileID']).read()
 
         return record
+
+    def has_record(self, item_type, uuid, version):
+        header_table, file_table = self._get_tables(item_type)
+        print("uuid:", uuid)
+        print("version:", version, type(version))
+        cnt = header_table.find({'uuid': uuid, 'version': version}).count()
+        print("cnt:", cnt)
+        print("res:", cnt > 0)
+        return header_table.find({'uuid': uuid, 'version': version}).count() > 0
 
 
 # singleton
@@ -198,3 +206,6 @@ def get_master_idx(item_record):
 def get_file_from_record(record):
     if record is not None and 'file' in record:
         return record['file']
+
+def has_avatar(uuid, version):
+    return mongoDB.has_record('avatar', uuid, version)

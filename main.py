@@ -3,7 +3,9 @@ import json
 
 from flask import Flask, jsonify, request
 
-from mongo_utils import write_outfit, read_avatar
+from mongo_utils import (
+    write_outfit, read_avatar, write_avatar, has_avatar
+)
 
 app = Flask(__name__)
 
@@ -78,6 +80,29 @@ def get_avatar():
         return json.loads(record['file'].decode("utf-8"))
     else:
         return response_with_error("avatar is not in mongoDB")
+
+@app.route("/upload_avatar", methods=['POST'])
+def upload_avatar():
+    """
+    params: uuid, version, avatar(json)
+    """
+    payload = request.get_json(force=True)
+    if payload is None:
+        return response_with_error("payload is empty")
+    uuid = payload.get("uuid", None)
+    version = int(payload.get("version", None))
+    avatar = payload.get("avatar", None)
+
+    if None in [uuid, version, avatar] > 0:
+        return response_with_error("missing paramenter(s)")
+
+    if has_avatar(uuid, version):
+        print("true")
+        write_avatar(uuid, version, compress_json_to_bytes(avatar))
+        return jsonify({"message": "ok"})
+    else:
+        print("false")
+        return response_with_error("avatar record is not in mongoDB")
 
 if __name__ == '__main__':
     app.run(debug=True)
